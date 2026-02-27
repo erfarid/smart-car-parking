@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Database files
+*.db
+
+# ML model weights
+*.pt
+
+# Images
+images/
+
+# OS files
+.DS_Store
+Thumbs.db
