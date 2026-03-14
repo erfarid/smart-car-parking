@@ -1,3 +1,4 @@
+from typing import Optional
 from app.database import get_connection
 
 
@@ -41,7 +42,7 @@ class ReportingService:
         }
 
     @staticmethod
-    def sessions_by_date_range(date_from: str | None, date_to: str | None):
+    def sessions_by_date_range(date_from: Optional[str], date_to: Optional[str]):
         conn = get_connection()
         cur = conn.cursor()
 

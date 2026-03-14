@@ -1,8 +1,4 @@
 import re
-import cv2
-import numpy as np
-import easyocr
-from ultralytics import YOLO
 
 
 class PlateDetectionService:
@@ -12,11 +8,13 @@ class PlateDetectionService:
     """
 
     def __init__(self):
-        # Load models only once
+        import cv2  # noqa: F401
+        import easyocr
+        from ultralytics import YOLO
+
+        self.cv2 = cv2
         self.model = YOLO("yolov8n.pt")
         self.reader = easyocr.Reader(['en'], gpu=False)
-
-        # Adjust regex for your country if needed
         self.plate_pattern = r'^[A-Z0-9-]{5,12}$'
 
     def process(self, image_bytes: bytes):
@@ -24,16 +22,14 @@ class PlateDetectionService:
         Accepts image bytes (from FastAPI upload)
         Returns detected plate and confidence
         """
+        import numpy as np
 
-        # Convert bytes to OpenCV image
         np_arr = np.frombuffer(image_bytes, np.uint8)
-        image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        image = self.cv2.imdecode(np_arr, self.cv2.IMREAD_COLOR)
 
         if image is None:
             raise ValueError("Invalid image file")
 
-        # For now: run OCR directly on full image
-        # (You can later crop using YOLO bounding boxes)
         ocr_results = self.reader.readtext(image)
 
         best_plate = None
