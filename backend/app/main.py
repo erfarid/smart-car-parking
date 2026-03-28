@@ -5,6 +5,7 @@ from app.api.zone_controller import router as zone_router
 from app.api.report_controller import router as report_router
 from app.api.vehicle_controller import router as vehicle_router
 from app.api.upload_controller import router as upload_router
+from app.api.payment_controller import router as payment_router
 from app.api.auth_controller import router as auth_router
 
 app = FastAPI(title="Smart Parking System - Layered Backend")
@@ -22,7 +23,9 @@ app.include_router(zone_router)
 app.include_router(report_router)
 app.include_router(vehicle_router)
 app.include_router(upload_router)
+app.include_router(payment_router)
 app.include_router(auth_router)
+
 
 @app.get("/health")
 def health():

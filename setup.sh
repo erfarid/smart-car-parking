@@ -9,7 +9,7 @@ echo ""
 # ── 1. Backend setup ──
 echo "[1/5] Installing backend Python dependencies..."
 cd backend
-py -m pip install -r requirements.txt
+pip install -r requirements.txt
 echo ""
 
 # ── 2. Create database ──

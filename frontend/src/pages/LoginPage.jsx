@@ -1,99 +1,99 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import ApiClient from "../services/ApiClient";
 
-export default function LoginPage() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
+function destinationForRole(role) {
+  if (role === "admin") return "/";
+  if (role === "worker") return "/worker";
+  return "/driver";
+}
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  }
+export default function LoginPage() {
+  const { loginUser } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
-    if (!form.email.trim() || !form.password.trim()) {
-    setError("Please fill the details");
-    return;
-  }
-
+    setError(null);
+    setLoading(true);
     try {
-      const data = await ApiClient.loginUser(form);
-
-      // optional: store user if backend returns it
-      if (data?.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
-
-      // keep your old behavior
-      if (data?.user?.role === "admin") navigate("/admin");
-      else navigate("/driver");
-    } catch (err) {
-      setError(err.message);
+      const user = await ApiClient.login(email, password);
+      loginUser(user);
+      navigate(destinationForRole(user.role));
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-page__blur auth-page__blur--one"></div>
-      <div className="auth-page__blur auth-page__blur--two"></div>
-
-      <div className="auth-card">
-        <div className="auth-card__header">
-          <div className="auth-card__logo">P</div>
-          <div>
-            <h1 className="auth-card__title">Login</h1>
-            <p className="auth-card__subtitle">
-              Sign in to access your parking dashboard
-            </p>
-          </div>
+    <div
+      className="login-page"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(15, 23, 42, 0.68), rgba(30, 41, 59, 0.68)), url('/car_background.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div className="login-card">
+        <div className="login-logo">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <path d="M9 3v18" />
+            <path d="M3 9h6" />
+            <path d="M3 15h6" />
+          </svg>
+          <h1>Smart Parking</h1>
+          <p>Sign in to your account</p>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="auth-form__group">
-            <label className="auth-form__label">Email</label>
+        {error && <div className="alert alert--error">{error}</div>}
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Email</label>
             <input
               type="email"
-              name="email"
-              className="auth-form__input"
-              value={form.email}
-              onChange={handleChange}
+              className="input"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
             />
           </div>
-
-          <div className="auth-form__group">
-            <label className="auth-form__label">Password</label>
+          <div className="form-group">
+            <label>Password</label>
             <input
               type="password"
-              name="password"
-              className="auth-form__input"
-              value={form.password}
-              onChange={handleChange}
+              className="input"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
-
-          {error && (
-            <div className="auth-message auth-message--error">{error}</div>
-          )}
-
-          <button type="submit" className="auth-form__submit">
-            Login
+          <button type="submit" className="btn btn--primary btn--lg" style={{ width: "100%" }} disabled={loading}>
+            {loading ? "Signing in..." : "Sign In"}
           </button>
-          <button
-            type="button"
-            className="auth-form__submit"
-            onClick={() => navigate("/")}
-          >
-            Back
-          </button>
-
-          <p className="auth-form__footer">
-            Don&apos;t have an account? <Link to="/register">Register</Link>
-          </p>
         </form>
+
+        <div className="login-footer">
+          <p>
+            Don't have an account? <Link to="/register">Register here</Link>
+          </p>
+          <p>
+            <Link to="/">Back to home</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

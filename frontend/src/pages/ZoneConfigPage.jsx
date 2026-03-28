@@ -7,9 +7,9 @@ const emptyZone = {
   base_hourly_rate: 1000,
   peak_start: "08:00",
   peak_end: "18:00",
-  peak_multiplier: 1.5,
-  max_duration_minutes: 240,
-  overstay_multiplier: 2.0,
+  peak_multiplier: 1.2,
+  max_duration_minutes: 1440,
+  overstay_multiplier: 1.5,
 };
 
 export default function ZoneConfigPage() {
@@ -116,7 +116,7 @@ export default function ZoneConfigPage() {
               <input
                 type="text"
                 className="input"
-                placeholder="e.g. Z_008"
+                placeholder="e.g. D08"
                 value={form.zone_id}
                 onChange={(e) => updateForm("zone_id", e.target.value)}
                 disabled={!!editing}
@@ -128,7 +128,7 @@ export default function ZoneConfigPage() {
               <input
                 type="text"
                 className="input"
-                placeholder="e.g. District_VIII"
+                placeholder="e.g. District VIII - Józsefváros"
                 value={form.zone_name}
                 onChange={(e) => updateForm("zone_name", e.target.value)}
                 required
@@ -173,7 +173,8 @@ export default function ZoneConfigPage() {
                 type="number"
                 className="input"
                 min="1"
-                step="0.1"
+                max="1.3"
+                step="0.05"
                 value={form.peak_multiplier}
                 onChange={(e) =>
                   updateForm("peak_multiplier", parseFloat(e.target.value) || 1)
@@ -182,7 +183,7 @@ export default function ZoneConfigPage() {
               />
             </div>
             <div className="form-group">
-              <label>Max Duration (min)</label>
+              <label>Max Duration (min, up to 1440)</label>
               <input
                 type="number"
                 className="input"

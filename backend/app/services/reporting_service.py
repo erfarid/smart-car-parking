@@ -1,4 +1,5 @@
 from typing import Optional
+
 from app.database import get_connection
 
 
@@ -8,13 +9,15 @@ class ReportingService:
     def revenue_by_zone():
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT zone_id, SUM(final_fee) AS revenue
             FROM parking_sessions
             WHERE final_fee IS NOT NULL
             GROUP BY zone_id
             ORDER BY revenue DESC
-        """)
+        """
+        )
         rows = cur.fetchall()
         conn.close()
         return rows
@@ -23,14 +26,16 @@ class ReportingService:
     def revenue_summary():
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("""
+        cur.execute(
+            """
             SELECT 
                 COALESCE(SUM(final_fee), 0) AS total_revenue,
                 COALESCE(SUM(CASE WHEN status='paid' THEN 1 ELSE 0 END), 0) AS paid_count,
                 COALESCE(SUM(CASE WHEN status='unpaid' THEN 1 ELSE 0 END), 0) AS unpaid_count,
                 COALESCE(SUM(CASE WHEN status='overdue' THEN 1 ELSE 0 END), 0) AS overdue_count
             FROM parking_sessions
-        """)
+        """
+        )
         row = cur.fetchone()
         conn.close()
 
@@ -42,12 +47,29 @@ class ReportingService:
         }
 
     @staticmethod
-    def sessions_by_date_range(date_from: Optional[str], date_to: Optional[str]):
+    def sessions_by_date_range(
+        date_from: Optional[str],
+        date_to: Optional[str],
+        user_id: Optional[str] = None,
+        role: str = "user",
+        plate_number: Optional[str] = None,
+    ):
         conn = get_connection()
         cur = conn.cursor()
 
         query = "SELECT * FROM parking_sessions WHERE 1=1"
         params = []
+
+        if role not in {"admin", "worker"}:
+            if not user_id:
+                query += " AND 1=0"
+            else:
+                query += " AND user_id = ?"
+                params.append(user_id)
+
+        if plate_number:
+            query += " AND plate_number = ?"
+            params.append(plate_number.strip().upper())
 
         if date_from:
             query += " AND entry_timestamp >= ?"
@@ -62,5 +84,4 @@ class ReportingService:
         cur.execute(query, params)
         rows = cur.fetchall()
         conn.close()
-
         return rows

@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
 import { useState } from "react";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -9,16 +10,86 @@ import SessionsPage from "./pages/SessionsPage";
 import ZoneConfigPage from "./pages/ZoneConfigPage";
 import UploadImagePage from "./pages/UploadImagePage";
 import ReportsPage from "./pages/ReportsPage";
+import ProfilePage from "./pages/ProfilePage";
+import PaymentPage from "./pages/PaymentPage";
+import UsersPage from "./pages/UsersPage";
+import WorkersPage from "./pages/WorkersPage";
+import MessagesPage from "./pages/MessagesPage";
+import WorkerDashboardPage from "./pages/WorkerDashboardPage";
+
+function roleBadgeClass(role) {
+  if (role === "admin" || role === "worker") return "active";
+  return "paid";
+}
+
+function defaultRouteForRole(role) {
+  if (role === "admin") return "/";
+  if (role === "worker") return "/worker";
+  return "/driver";
+}
+
+function TopBar() {
+  const { user, logout } = useAuth();
+  if (!user) return null;
+
+  return (
+    <div className="topbar">
+      <div className="topbar__left">
+        <span className="topbar__greeting">Welcome, {user.name}</span>
+        <span className={`badge badge--${roleBadgeClass(user.role)}`}>
+          {user.role}
+        </span>
+      </div>
+      <div className="topbar__right">
+        <NavLink to="/profile" className="profile-icon" title="My Profile">
+          {user.name.charAt(0).toUpperCase()}
+        </NavLink>
+        <button className="btn btn--sm btn--outline topbar__logout" onClick={logout}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Sidebar({ collapsed, onToggle }) {
-  const links = [
-    { to: "/admin", label: "Admin Dashboard", icon: "grid" },
-    { to: "/driver", label: "Driver Dashboard", icon: "user" },
+  const { user } = useAuth();
+
+  const adminLinks = [
+    { to: "/", label: "Admin Dashboard", icon: "grid" },
+    { to: "/users", label: "Users", icon: "users" },
+    { to: "/workers", label: "Workers", icon: "shield" },
+    { to: "/driver", label: "Driver View", icon: "user" },
     { to: "/sessions", label: "Sessions", icon: "clock" },
     { to: "/zones", label: "Zone Config", icon: "map" },
     { to: "/upload", label: "Upload Image", icon: "camera" },
+    { to: "/payment", label: "Payment", icon: "credit-card" },
+    { to: "/messages", label: "Messages", icon: "bell" },
     { to: "/reports", label: "Reports", icon: "bar-chart" },
+    { to: "/profile", label: "Profile", icon: "profile" },
   ];
+
+  const driverLinks = [
+    { to: "/driver", label: "My Dashboard", icon: "user" },
+    { to: "/sessions", label: "Sessions", icon: "clock" },
+    { to: "/upload", label: "Upload Image", icon: "camera" },
+    { to: "/payment", label: "Payment", icon: "credit-card" },
+    { to: "/messages", label: "Messages", icon: "bell" },
+    { to: "/profile", label: "Profile", icon: "profile" },
+  ];
+
+  const workerLinks = [
+    { to: "/worker", label: "Worker Patrol", icon: "shield" },
+    { to: "/messages", label: "Messages", icon: "bell" },
+    { to: "/profile", label: "Profile", icon: "profile" },
+  ];
+
+  const links = user?.role === "admin" ? adminLinks : user?.role === "worker" ? workerLinks : driverLinks;
 
   return (
     <aside className={`sidebar ${collapsed ? "sidebar--collapsed" : ""}`}>
@@ -48,7 +119,7 @@ function Sidebar({ collapsed, onToggle }) {
           <NavLink
             key={link.to}
             to={link.to}
-            end={link.to === "/admin"}
+            end={link.to === "/"}
             className={({ isActive }) =>
               `sidebar__link ${isActive ? "sidebar__link--active" : ""}`
             }
@@ -78,6 +149,14 @@ function SidebarIcon({ name }) {
         <circle cx="12" cy="7" r="4" />
       </>
     ),
+    users: (
+      <>
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </>
+    ),
     clock: (
       <>
         <circle cx="12" cy="12" r="10" />
@@ -104,6 +183,30 @@ function SidebarIcon({ name }) {
         <line x1="6" y1="20" x2="6" y2="16" />
       </>
     ),
+    "credit-card": (
+      <>
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+        <line x1="1" y1="10" x2="23" y2="10" />
+      </>
+    ),
+    bell: (
+      <>
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </>
+    ),
+    profile: (
+      <>
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </>
+    ),
+    shield: (
+      <>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="M9 12l2 2 4-4" />
+      </>
+    ),
   };
 
   return (
@@ -123,23 +226,9 @@ function SidebarIcon({ name }) {
   );
 }
 
-function AppContent() {
+function AuthenticatedApp() {
   const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
-
-  const publicRoutes = ["/", "/login", "/register", "/logout"];
-  const isPublicPage = publicRoutes.includes(location.pathname);
-
-  if (isPublicPage) {
-    return (
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/logout" element={<Navigate to="/" replace />} />
-      </Routes>
-    );
-  }
+  const { user } = useAuth();
 
   return (
     <div className="app">
@@ -148,14 +237,24 @@ function AppContent() {
         onToggle={() => setCollapsed(!collapsed)}
       />
       <main className="main-content">
+        <TopBar />
         <Routes>
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/driver" element={<DriverDashboardPage />} />
-          <Route path="/sessions" element={<SessionsPage />} />
-          <Route path="/zones" element={<ZoneConfigPage />} />
-          <Route path="/upload" element={<UploadImagePage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {user?.role === "admin" ? (
+            <Route path="/" element={<AdminDashboardPage />} />
+          ) : (
+            <Route path="/" element={<Navigate to={defaultRouteForRole(user?.role)} replace />} />
+          )}
+          <Route path="/driver" element={user?.role === "worker" ? <Navigate to="/worker" replace /> : <DriverDashboardPage />} />
+          <Route path="/worker" element={user?.role === "worker" ? <WorkerDashboardPage /> : <Navigate to={defaultRouteForRole(user?.role)} replace />} />
+          <Route path="/sessions" element={user?.role === "worker" ? <Navigate to="/worker" replace /> : <SessionsPage />} />
+          <Route path="/zones" element={user?.role === "admin" ? <ZoneConfigPage /> : <Navigate to={defaultRouteForRole(user?.role)} replace />} />
+          <Route path="/upload" element={user?.role === "worker" ? <Navigate to="/worker" replace /> : <UploadImagePage />} />
+          <Route path="/reports" element={user?.role === "admin" ? <ReportsPage /> : <Navigate to={defaultRouteForRole(user?.role)} replace />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/payment" element={user?.role === "worker" ? <Navigate to="/worker" replace /> : <PaymentPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/users" element={user?.role === "admin" ? <UsersPage /> : <Navigate to={defaultRouteForRole(user?.role)} replace />} />
+          <Route path="/workers" element={user?.role === "admin" ? <WorkersPage /> : <Navigate to={defaultRouteForRole(user?.role)} replace />} />
         </Routes>
       </main>
     </div>
@@ -164,8 +263,23 @@ function AppContent() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+function AppContent() {
+  const { user } = useAuth();
+
+  return (
+    <Routes>
+      <Route path="/landing" element={user ? <Navigate to={defaultRouteForRole(user.role)} replace /> : <LandingPage />} />
+      <Route path="/login" element={user ? <Navigate to={defaultRouteForRole(user.role)} replace /> : <LoginPage />} />
+      <Route path="/register" element={user ? <Navigate to={defaultRouteForRole(user.role)} replace /> : <RegisterPage />} />
+      <Route path="/*" element={user ? <AuthenticatedApp /> : <Navigate to="/landing" replace />} />
+    </Routes>
   );
 }

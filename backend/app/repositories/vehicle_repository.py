@@ -13,7 +13,7 @@ class VehicleRepository:
         return found
 
     @staticmethod
-    def get_by_plate(plate_number: str):
+    def get_by_plate_any(plate_number: str):
         conn = get_connection()
         cur = conn.cursor()
         cur.execute("SELECT * FROM vehicles WHERE plate_number=?", (plate_number,))
@@ -22,42 +22,87 @@ class VehicleRepository:
         return row
 
     @staticmethod
-    def list_all():
+    def get_by_plate(plate_number: str, owner_user_id: str | None = None):
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM vehicles ORDER BY plate_number")
+        if owner_user_id:
+            cur.execute(
+                "SELECT * FROM vehicles WHERE plate_number=? AND owner_user_id=?",
+                (plate_number, owner_user_id),
+            )
+        else:
+            cur.execute("SELECT * FROM vehicles WHERE plate_number=?", (plate_number,))
+        row = cur.fetchone()
+        conn.close()
+        return row
+
+    @staticmethod
+    def list_all(owner_user_id: str | None = None):
+        conn = get_connection()
+        cur = conn.cursor()
+        if owner_user_id:
+            cur.execute(
+                "SELECT * FROM vehicles WHERE owner_user_id=? ORDER BY plate_number",
+                (owner_user_id,),
+            )
+        else:
+            cur.execute("SELECT * FROM vehicles ORDER BY plate_number")
         rows = cur.fetchall()
         conn.close()
         return rows
 
     @staticmethod
-    def create(plate_number: str, owner_name: str, vehicle_type: str, registration_status: str):
-        """
-        Insert vehicle. If plate already exists, it will not crash.
-        Returns True if inserted, False if ignored.
-        """
+    def create_or_assign(
+        plate_number: str,
+        owner_name: str,
+        vehicle_type: str,
+        registration_status: str,
+        owner_user_id: str | None = None,
+    ):
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("""
-            INSERT OR IGNORE INTO vehicles
-            (plate_number, owner_name, vehicle_type, registration_status)
-            VALUES (?, ?, ?, ?)
-        """, (plate_number, owner_name, vehicle_type, registration_status))
+        cur.execute("SELECT * FROM vehicles WHERE plate_number=?", (plate_number,))
+        existing = cur.fetchone()
+
+        if existing:
+            existing_owner = existing["owner_user_id"] if "owner_user_id" in existing.keys() else None
+            if not owner_user_id:
+                conn.close()
+                return {"ok": False, "reason": "already_exists"}
+            if existing_owner not in (None, "", owner_user_id):
+                conn.close()
+                return {"ok": False, "reason": "owned_by_another_user"}
+
+            cur.execute(
+                """
+                UPDATE vehicles
+                SET owner_name=?, vehicle_type=?, registration_status=?, owner_user_id=?
+                WHERE plate_number=?
+            """,
+                (owner_name, vehicle_type, registration_status, owner_user_id, plate_number),
+            )
+            conn.commit()
+            conn.close()
+            return {"ok": True, "action": "assigned", "plate_number": plate_number}
+
+        cur.execute(
+            """
+            INSERT INTO vehicles
+            (plate_number, owner_name, vehicle_type, registration_status, owner_user_id)
+            VALUES (?, ?, ?, ?, ?)
+        """,
+            (plate_number, owner_name, vehicle_type, registration_status, owner_user_id),
+        )
         conn.commit()
-        inserted = (cur.rowcount == 1)
         conn.close()
-        return inserted
+        return {"ok": True, "action": "created", "plate_number": plate_number}
 
     @staticmethod
     def delete(plate_number: str):
-        """
-        Delete vehicle by plate.
-        Returns True if deleted, False if not found.
-        """
         conn = get_connection()
         cur = conn.cursor()
         cur.execute("DELETE FROM vehicles WHERE plate_number=?", (plate_number,))
         conn.commit()
-        deleted = (cur.rowcount == 1)
+        deleted = cur.rowcount == 1
         conn.close()
         return deleted

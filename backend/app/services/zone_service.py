@@ -8,6 +8,17 @@ class ZoneService:
     """
 
     @staticmethod
+    def _validate_zone(zone):
+        if zone.base_hourly_rate <= 0:
+            raise ValueError("base_hourly_rate must be > 0")
+        if not (1.0 <= zone.peak_multiplier <= 1.3):
+            raise ValueError("peak_multiplier must be between 1.0 and 1.3")
+        if zone.max_duration_minutes <= 0 or zone.max_duration_minutes > 1440:
+            raise ValueError("max_duration_minutes must be between 1 and 1440")
+        if zone.overstay_multiplier < 1.0:
+            raise ValueError("overstay_multiplier must be >= 1.0")
+
+    @staticmethod
     def list_zones():
         return ZoneRepository.list_all()
 
@@ -20,16 +31,7 @@ class ZoneService:
 
     @staticmethod
     def create_zone(zone):
-        # Basic validation (you can extend later)
-        if zone.base_hourly_rate <= 0:
-            raise ValueError("base_hourly_rate must be > 0")
-        if zone.peak_multiplier < 1.0:
-            raise ValueError("peak_multiplier must be >= 1.0")
-        if zone.max_duration_minutes <= 0:
-            raise ValueError("max_duration_minutes must be > 0")
-        if zone.overstay_multiplier < 1.0:
-            raise ValueError("overstay_multiplier must be >= 1.0")
-
+        ZoneService._validate_zone(zone)
         ZoneRepository.create(zone)
 
     @staticmethod

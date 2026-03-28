@@ -1,93 +1,274 @@
-# Farid Md Farid
+# Smart Parking System
 
+A full-stack smart parking management system with license plate detection (YOLOv8 + EasyOCR), zone-based fee calculation, and real-time session management.
 
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Architecture
 
 ```
-cd existing_repo
-git remote add origin https://szofttech.inf.elte.hu/gnn/thesis/farid-md-farid.git
-git branch -M master
-git push -uf origin master
+smart_parking/
+├── backend/                  # FastAPI Python backend
+│   ├── app/
+│   │   ├── api/              # REST controllers
+│   │   │   ├── session_controller.py
+│   │   │   ├── zone_controller.py
+│   │   │   ├── report_controller.py
+│   │   │   ├── vehicle_controller.py
+│   │   │   └── upload_controller.py
+│   │   ├── services/         # Business logic
+│   │   │   ├── session_service.py
+│   │   │   ├── zone_service.py
+│   │   │   ├── fee_calculation_service.py
+│   │   │   ├── reporting_service.py
+│   │   │   └── plate_detection_service.py  # YOLOv8 + EasyOCR
+│   │   ├── repositories/     # Data access layer
+│   │   │   ├── session_repository.py
+│   │   │   ├── zone_repository.py
+│   │   │   └── vehicle_repository.py
+│   │   ├── models/
+│   │   │   └── schemas.py    # Pydantic models
+│   │   ├── main.py           # FastAPI app entry point
+│   │   └── database.py       # SQLite connection
+│   └── scripts/              # DB setup & seed scripts
+│       ├── db_create.py
+│       ├── seed_zones.py
+│       ├── generate_vehicles.py
+│       └── generate_sessions.py
+├── frontend/                 # React + Vite SPA
+│   └── src/
+│       ├── pages/
+│       │   ├── AdminDashboardPage.jsx
+│       │   ├── DriverDashboardPage.jsx
+│       │   ├── SessionsPage.jsx
+│       │   ├── ZoneConfigPage.jsx
+│       │   ├── UploadImagePage.jsx
+│       │   └── ReportsPage.jsx
+│       ├── services/
+│       │   └── ApiClient.js  # API service layer
+│       └── App.jsx           # Router + sidebar navigation
+├── api/                      # Vercel serverless entry point
+│   └── index.py
+├── setup.sh                  # One-command full setup
+└── vercel.json               # Vercel deployment config
 ```
 
-## Integrate with your tools
+## Prerequisites
 
-- [ ] [Set up project integrations](https://szofttech.inf.elte.hu/gnn/thesis/farid-md-farid/-/settings/integrations)
+- **Python 3.9+** (3.10+ recommended)
+- **Node.js 18+** and npm
+- **pip** (Python package manager)
 
-## Collaborate with your team
+## Quick Start (One Command)
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+```bash
+git clone <your-repo-url>
+cd smart_parking
+chmod +x setup.sh
+./setup.sh
+```
 
-## Test and Deploy
+This installs all dependencies, creates the database, and seeds it with demo data.
 
-Use the built-in continuous integration in GitLab.
+## Manual Setup (Step by Step)
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+### Step 1: Backend
 
-***
+```bash
+cd backend
 
-# Editing this README
+# Install core Python dependencies
+pip install -r requirements.txt
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+# (Optional) Install ML libraries for license plate detection (Upload Image page)
+# This is ~2GB and only needed if you want to use the AI plate detection feature
+pip install opencv-python-headless easyocr ultralytics numpy
 
-## Suggestions for a good README
+# Create the database
+python scripts/db_create.py
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+# Seed with demo data
+python scripts/seed_zones.py
+python scripts/generate_vehicles.py
+python scripts/generate_sessions.py
 
-## Name
-Choose a self-explaining name for your project.
+# Start the backend server
+uvicorn app.main:app --reload
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Backend runs at **http://localhost:8000**
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+> **Note:** All features work without the ML libraries. Only the Upload Image page
+> (license plate OCR detection) requires `opencv-python-headless`, `easyocr`,
+> `ultralytics`, and `numpy`. If not installed, you will see a "No module named cv2"
+> error when trying to detect a plate — everything else still works fine.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Step 2: Frontend
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```bash
+cd frontend
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+# Install Node dependencies
+npm install
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+# Start dev server
+npm run dev
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+Frontend runs at **http://localhost:5173**
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Testing Everything End-to-End
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Once both servers are running, open **http://localhost:5173** and test each page:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### 1. Admin Dashboard (`/`)
+- Shows total revenue, paid/unpaid/overdue session counts
+- Lists active sessions and 15 most recent sessions
+- All data loads from the seeded database automatically
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### 2. Driver Dashboard (`/driver`)
+- Enter a plate number to search (use one from the seeded data)
+- To find a valid plate, go to Sessions page first and copy one
+- Shows vehicle info, parking history, and fee breakdown
 
-## License
-For open source projects, say how it is licensed.
+### 3. Sessions (`/sessions`)
+- View all 2000 seeded parking sessions
+- **Filter by date**: use the date picker to narrow results
+- **Start a new session**: click "New Session", pick a plate and zone, click "Start Parking"
+- **End a session**: click "End Session" on any active session to see the calculated fee
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### 4. Zone Configuration (`/zones`)
+- View all 7 Budapest parking zones with their rates
+- **Add Zone**: click "Add Zone", fill in the form
+- **Edit Zone**: click "Edit" on any zone row
+- **Delete Zone**: click "Delete" on any zone row
+
+### 5. Upload Image (`/upload`)
+- Upload a photo of a license plate
+- The AI (YOLOv8 + EasyOCR) detects the plate number
+- If valid, you can immediately start a parking session
+- **Requires ML libraries** — you must install them first:
+  ```bash
+  pip install opencv-python-headless easyocr ultralytics numpy
+  ```
+- Without these libraries, you'll get a "No module named cv2" error
+- The YOLOv8 model (`yolov8n.pt`) downloads automatically on first use (~6MB)
+- This feature does **not** work on Vercel (libraries too large for serverless)
+
+### 6. Reports (`/reports`)
+- Bar chart: revenue breakdown by zone
+- Doughnut chart: paid vs unpaid vs overdue sessions
+- Table with percentage share per zone
+
+## API Endpoints
+
+Test these directly in your browser or with curl:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| GET | `/zones/` | List all zones |
+| POST | `/zones/` | Create a zone |
+| PUT | `/zones/{zone_id}` | Update a zone |
+| DELETE | `/zones/{zone_id}` | Delete a zone |
+| GET | `/sessions/` | List sessions (optional `?date_from=&date_to=`) |
+| POST | `/sessions/` | Start a parking session |
+| PUT | `/sessions/{id}/close` | End session & calculate fees |
+| GET | `/vehicles/` | List all vehicles |
+| GET | `/vehicles/{plate}` | Get vehicle by plate |
+| POST | `/vehicles/` | Register a vehicle |
+| DELETE | `/vehicles/{plate}` | Delete a vehicle |
+| POST | `/upload/plate-image` | Upload image for plate detection |
+| GET | `/reports/revenue-by-zone` | Revenue per zone |
+| GET | `/reports/revenue-summary` | Aggregated revenue stats |
+
+### Example API Calls
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# List all zones
+curl http://localhost:8000/zones/
+
+# List all sessions
+curl http://localhost:8000/sessions/
+
+# Revenue summary
+curl http://localhost:8000/reports/revenue-summary
+
+# Start a session (use a plate from the seeded vehicles)
+curl -X POST http://localhost:8000/sessions/ \
+  -H "Content-Type: application/json" \
+  -d '{"plate_number": "ABC-1234", "zone_id": "Z_001"}'
+
+# Close a session
+curl -X PUT http://localhost:8000/sessions/<session_id>/close \
+  -H "Content-Type: application/json" \
+  -d '{}'
+
+# Upload plate image for detection
+curl -X POST http://localhost:8000/upload/plate-image \
+  -F "file=@plate_photo.jpg"
+```
+
+## How the AI Plate Detection Works
+
+1. User uploads a photo via the Upload Image page
+2. The image bytes are sent to `POST /upload/plate-image`
+3. `PlateDetectionService` processes the image:
+   - **YOLOv8** (nano model) can detect license plate regions
+   - **EasyOCR** reads text from the image
+   - Results are validated against regex pattern `^[A-Z0-9-]{5,12}$`
+4. Returns: `{ "plate_text": "ABC-1234", "confidence": 0.95, "valid": true }`
+5. If valid, the frontend offers a quick action to start a parking session
+
+The `yolov8n.pt` model file is **not** in the repo (excluded by `.gitignore`). It downloads automatically from Ultralytics the first time you use the upload feature.
+
+## Fee Calculation Logic
+
+```
+base_fee = base_hourly_rate * (duration_minutes / 60)
+
+overstay_penalty = 0
+if duration > max_duration_minutes:
+    overstay_penalty = base_fee * (overstay_multiplier - 1)
+
+repeat_penalty = base_fee * 0.2 * repeat_count
+
+final_fee = base_fee + overstay_penalty + repeat_penalty
+```
+
+- **Peak pricing**: zones have peak hours (08:00-18:00) with multipliers (1.2x-1.6x)
+- **Overstay penalty**: if parked beyond max duration (default 240 min), extra charge applies
+- **Repeat penalty**: 20% of base fee per previous session (frequent parkers pay more)
+
+## Database Schema
+
+Three tables in SQLite (`backend/parking.db`):
+
+- **zones**: 7 Budapest district zones with hourly rates and pricing rules
+- **vehicles**: 500 registered vehicles with Hungarian names and plate numbers
+- **parking_sessions**: 2000 historical sessions with calculated fees
+
+## Seeded Demo Data
+
+| Table | Records | Details |
+|-------|---------|---------|
+| zones | 7 | Z_001 to Z_007, rates 1300-2200 HUF/hr |
+| vehicles | 500 | Random plates (ABC-1234), Hungarian names, types: car/van/truck/electric/hybrid |
+| parking_sessions | 2000 | 30-480 min duration, paid/unpaid status, full fee breakdown |
+
+## Deployment (Vercel)
+
+The project is configured for Vercel deployment:
+
+- **Frontend**: built from `frontend/` and served as static files
+- **Backend**: runs as a Python serverless function via `api/index.py`
+- **Database**: auto-created in `/tmp` with seed data on cold start
+
+Note: The AI plate detection (YOLOv8 + EasyOCR) does **not** work on Vercel because the ML libraries are too large for serverless functions. All other features work.
+
+## Tech Stack
+
+**Backend**: FastAPI, SQLite3, Pydantic, YOLOv8, EasyOCR, OpenCV
+**Frontend**: React 18, Vite, React Router, Chart.js
+**Deployment**: Vercel (static + serverless)

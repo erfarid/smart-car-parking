@@ -6,9 +6,6 @@ def main():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
-    # =========================
-    # ZONES TABLE
-    # =========================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS zones (
         zone_id TEXT PRIMARY KEY,
@@ -17,14 +14,11 @@ def main():
         peak_start TEXT NOT NULL,
         peak_end TEXT NOT NULL,
         peak_multiplier REAL NOT NULL,
-        max_duration_minutes INTEGER NOT NULL DEFAULT 240,
-        overstay_multiplier REAL NOT NULL DEFAULT 2.0
+        max_duration_minutes INTEGER NOT NULL DEFAULT 1440,
+        overstay_multiplier REAL NOT NULL DEFAULT 1.5
     )
     """)
 
-    # =========================
-    # VEHICLES TABLE
-    # =========================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS vehicles (
         plate_number TEXT PRIMARY KEY,
@@ -34,9 +28,6 @@ def main():
     )
     """)
 
-    # =========================
-    # PARKING SESSIONS TABLE
-    # =========================
     cur.execute("""
     CREATE TABLE IF NOT EXISTS parking_sessions (
         session_id TEXT PRIMARY KEY,
@@ -51,8 +42,36 @@ def main():
         repeat_penalty INTEGER,
         final_fee INTEGER,
         status TEXT NOT NULL,
+        user_id TEXT,
         FOREIGN KEY (plate_number) REFERENCES vehicles(plate_number),
-        FOREIGN KEY (zone_id) REFERENCES zones(zone_id)
+        FOREIGN KEY (zone_id) REFERENCES zones(zone_id),
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        user_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'user',
+        created_at TEXT NOT NULL
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS payments (
+        payment_id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        session_id TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        cardholder_name TEXT,
+        card_last_four TEXT,
+        payment_timestamp TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'success',
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (session_id) REFERENCES parking_sessions(session_id)
     )
     """)
 
