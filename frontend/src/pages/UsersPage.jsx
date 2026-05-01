@@ -6,13 +6,13 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filters
+  // search aur filter ke liye state
   const [searchName, setSearchName] = useState("");
   const [searchEmail, setSearchEmail] = useState("");
   const [searchPlate, setSearchPlate] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  // User detail
+  // selected user ka detail dikhane ke liye
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDetail, setUserDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -33,6 +33,7 @@ export default function UsersPage() {
     }
   }
 
+  // ek specific user ka pura detail load karo
   async function viewUser(userId) {
     setDetailLoading(true);
     setSelectedUser(userId);
@@ -51,10 +52,15 @@ export default function UsersPage() {
     setUserDetail(null);
   }
 
-  // Filter logic
+  // search aur filter logic
   const filtered = users.filter((u) => {
-    if (searchName && !u.name.toLowerCase().includes(searchName.toLowerCase())) return false;
-    if (searchEmail && !u.email.toLowerCase().includes(searchEmail.toLowerCase())) return false;
+    if (searchName && !u.name.toLowerCase().includes(searchName.toLowerCase()))
+      return false;
+    if (
+      searchEmail &&
+      !u.email.toLowerCase().includes(searchEmail.toLowerCase())
+    )
+      return false;
     if (filterStatus === "unpaid" && u.total_unpaid <= 0) return false;
     if (filterStatus === "paid" && u.total_unpaid > 0) return false;
     return true;
@@ -69,7 +75,9 @@ export default function UsersPage() {
       <div className="page">
         <div className="page-header-row">
           <h1>User Details</h1>
-          <button className="btn btn--outline" onClick={closeDetail}>Back to Users</button>
+          <button className="btn btn--outline" onClick={closeDetail}>
+            Back to Users
+          </button>
         </div>
 
         {detailLoading ? (
@@ -83,8 +91,12 @@ export default function UsersPage() {
                 </div>
                 <div className="profile-info">
                   <h2>{userDetail.name}</h2>
-                  <p className="text-muted" style={{ marginBottom: "4px" }}>{userDetail.email}</p>
-                  <span className={`badge badge--${userDetail.role === "admin" || userDetail.role === "worker" ? "active" : "paid"}`}>
+                  <p className="text-muted" style={{ marginBottom: "4px" }}>
+                    {userDetail.email}
+                  </p>
+                  <span
+                    className={`badge badge--${userDetail.role === "admin" || userDetail.role === "worker" ? "active" : "paid"}`}
+                  >
                     {userDetail.role}
                   </span>
                 </div>
@@ -94,23 +106,31 @@ export default function UsersPage() {
             <div className="card-grid">
               <div className="stat-card stat-card--info">
                 <div className="stat-card__label">Total Sessions</div>
-                <div className="stat-card__value">{userDetail.stats.total_sessions}</div>
+                <div className="stat-card__value">
+                  {userDetail.stats.total_sessions}
+                </div>
               </div>
               <div className="stat-card stat-card--active">
                 <div className="stat-card__label">Active</div>
-                <div className="stat-card__value">{userDetail.stats.active_sessions}</div>
+                <div className="stat-card__value">
+                  {userDetail.stats.active_sessions}
+                </div>
               </div>
               <div className="stat-card stat-card--success">
                 <div className="stat-card__label">Total Paid</div>
-                <div className="stat-card__value">{userDetail.stats.total_paid.toLocaleString()} HUF</div>
+                <div className="stat-card__value">
+                  {userDetail.stats.total_paid.toLocaleString()} HUF
+                </div>
               </div>
               <div className="stat-card stat-card--danger">
                 <div className="stat-card__label">Total Unpaid</div>
-                <div className="stat-card__value">{userDetail.stats.total_unpaid.toLocaleString()} HUF</div>
+                <div className="stat-card__value">
+                  {userDetail.stats.total_unpaid.toLocaleString()} HUF
+                </div>
               </div>
             </div>
 
-            {/* All Sessions */}
+            {/* user ke saare sessions */}
             {userDetail.sessions.length > 0 && (
               <div className="card">
                 <h2>All Sessions ({userDetail.sessions.length})</h2>
@@ -131,14 +151,34 @@ export default function UsersPage() {
                     <tbody>
                       {userDetail.sessions.map((s) => (
                         <tr key={s.session_id}>
-                          <td className="mono">{s.session_id.slice(0, 8)}...</td>
+                          <td className="mono">
+                            {s.session_id.slice(0, 8)}...
+                          </td>
                           <td className="mono bold">{s.plate_number}</td>
                           <td>{s.zone_id}</td>
-                          <td>{new Date(s.entry_timestamp).toLocaleString()}</td>
-                          <td>{s.exit_timestamp ? new Date(s.exit_timestamp).toLocaleString() : "-"}</td>
-                          <td>{s.duration_minutes != null ? `${s.duration_minutes} min` : "-"}</td>
-                          <td className="bold">{s.final_fee != null ? `${s.final_fee.toLocaleString()} HUF` : "-"}</td>
-                          <td><span className={`badge badge--${s.status}`}>{s.status}</span></td>
+                          <td>
+                            {new Date(s.entry_timestamp).toLocaleString()}
+                          </td>
+                          <td>
+                            {s.exit_timestamp
+                              ? new Date(s.exit_timestamp).toLocaleString()
+                              : "-"}
+                          </td>
+                          <td>
+                            {s.duration_minutes != null
+                              ? `${s.duration_minutes} min`
+                              : "-"}
+                          </td>
+                          <td className="bold">
+                            {s.final_fee != null
+                              ? `${s.final_fee.toLocaleString()} HUF`
+                              : "-"}
+                          </td>
+                          <td>
+                            <span className={`badge badge--${s.status}`}>
+                              {s.status}
+                            </span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -147,7 +187,7 @@ export default function UsersPage() {
               </div>
             )}
 
-            {/* All Payments */}
+            {/* user ke saare payments */}
             {userDetail.payments.length > 0 && (
               <div className="card">
                 <h2>Payment History ({userDetail.payments.length})</h2>
@@ -166,12 +206,26 @@ export default function UsersPage() {
                     <tbody>
                       {userDetail.payments.map((p) => (
                         <tr key={p.payment_id}>
-                          <td className="mono">{p.payment_id.slice(0, 8)}...</td>
-                          <td className="mono">{p.session_id.slice(0, 8)}...</td>
-                          <td className="bold">{p.amount.toLocaleString()} HUF</td>
-                          <td>{p.card_last_four ? `****${p.card_last_four}` : "-"}</td>
-                          <td>{new Date(p.payment_timestamp).toLocaleString()}</td>
-                          <td><span className="badge badge--paid">{p.status}</span></td>
+                          <td className="mono">
+                            {p.payment_id.slice(0, 8)}...
+                          </td>
+                          <td className="mono">
+                            {p.session_id.slice(0, 8)}...
+                          </td>
+                          <td className="bold">
+                            {p.amount.toLocaleString()} HUF
+                          </td>
+                          <td>
+                            {p.card_last_four ? `****${p.card_last_four}` : "-"}
+                          </td>
+                          <td>
+                            {new Date(p.payment_timestamp).toLocaleString()}
+                          </td>
+                          <td>
+                            <span className="badge badge--paid">
+                              {p.status}
+                            </span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -219,7 +273,12 @@ export default function UsersPage() {
           </select>
           <button
             className="btn btn--outline"
-            onClick={() => { setSearchName(""); setSearchEmail(""); setSearchPlate(""); setFilterStatus("all"); }}
+            onClick={() => {
+              setSearchName("");
+              setSearchEmail("");
+              setSearchPlate("");
+              setFilterStatus("all");
+            }}
           >
             Clear
           </button>
@@ -249,14 +308,24 @@ export default function UsersPage() {
                   <td className="bold">{u.name}</td>
                   <td>{u.email}</td>
                   <td>
-                    <span className={`badge badge--${u.role === "admin" || u.role === "worker" ? "active" : "paid"}`}>
+                    <span
+                      className={`badge badge--${u.role === "admin" || u.role === "worker" ? "active" : "paid"}`}
+                    >
                       {u.role}
                     </span>
                   </td>
                   <td>{u.total_sessions}</td>
                   <td>{u.total_paid.toLocaleString()} HUF</td>
-                  <td className={u.total_unpaid > 0 ? "bold" : ""} style={{ color: u.total_unpaid > 0 ? "var(--color-danger)" : undefined }}>
-                    {u.total_unpaid > 0 ? `${u.total_unpaid.toLocaleString()} HUF` : "-"}
+                  <td
+                    className={u.total_unpaid > 0 ? "bold" : ""}
+                    style={{
+                      color:
+                        u.total_unpaid > 0 ? "var(--color-danger)" : undefined,
+                    }}
+                  >
+                    {u.total_unpaid > 0
+                      ? `${u.total_unpaid.toLocaleString()} HUF`
+                      : "-"}
                   </td>
                   <td>
                     {u.total_unpaid > 0 ? (
@@ -268,7 +337,10 @@ export default function UsersPage() {
                     )}
                   </td>
                   <td>
-                    <button className="btn btn--sm btn--outline" onClick={() => viewUser(u.user_id)}>
+                    <button
+                      className="btn btn--sm btn--outline"
+                      onClick={() => viewUser(u.user_id)}
+                    >
                       View
                     </button>
                   </td>

@@ -339,9 +339,9 @@ export default function DriverDashboardPage() {
       <div className="card">
         <h2>Budapest District Activity Map</h2>
         <p className="text-muted">
-          {isAdmin
-            ? "Each district is shown as a marker on the Budapest map. Marker color changes with the number of active parking sessions in that district."
-            : "Each district is shown as a marker on the Budapest map. Marker color changes when you have more sessions in that district, so districts with more than 3 of your sessions are highlighted automatically."}
+          Each district is shown as a marker on the Budapest map. Marker color
+          changes with the live number of active parking sessions in that
+          district.
         </p>
 
         <div className="map-container">
@@ -371,15 +371,14 @@ export default function DriverDashboardPage() {
               const activeCount = getActiveCount(cData);
               const userSessionCount =
                 userDistrictSessionCounts[normalizedZoneId] || 0;
-              const markerCount = isAdmin ? activeCount : userSessionCount;
-              const level = getDistrictLevel(markerCount);
-              const color = getDistrictColor(markerCount);
+              const level = getDistrictLevel(activeCount);
+              const color = getDistrictColor(activeCount);
 
               return (
                 <CircleMarker
-                  key={`${normalizedZoneId}-${level}-${markerCount}`}
+                  key={`${normalizedZoneId}-${level}-${activeCount}-${userSessionCount}`}
                   center={[district.lat, district.lng]}
-                  radius={12 + Math.min(markerCount, 8)}
+                  radius={12 + Math.min(activeCount, 8)}
                   pathOptions={{
                     color,
                     fillColor: color,
@@ -410,7 +409,7 @@ export default function DriverDashboardPage() {
                           <span>Active sessions now: {activeCount}</span>
                           <br />
                           <span>
-                            Your district level:{" "}
+                            District activity level:{" "}
                             <span style={{ color, fontWeight: 700 }}>
                               {level}
                             </span>
@@ -431,21 +430,21 @@ export default function DriverDashboardPage() {
               className="map-legend__dot"
               style={{ background: CONGESTION_COLORS.low }}
             />{" "}
-            {isAdmin ? "Low activity (0-3 active)" : "0-3 of your sessions"}
+            Low activity (0-3 active)
           </div>
           <div className="map-legend__item">
             <span
               className="map-legend__dot"
               style={{ background: CONGESTION_COLORS.medium }}
             />{" "}
-            {isAdmin ? "Medium activity (4-7 active)" : "4-7 of your sessions"}
+            Medium activity (4-7 active)
           </div>
           <div className="map-legend__item">
             <span
               className="map-legend__dot"
               style={{ background: CONGESTION_COLORS.high }}
             />{" "}
-            {isAdmin ? "High activity (8+ active)" : "8+ of your sessions"}
+            High activity (8+ active)
           </div>
         </div>
       </div>

@@ -30,6 +30,7 @@ export default function SessionsPage() {
     loadData();
   }, [user?.user_id, user?.role]);
 
+  // sessions, zones aur vehicles ek saath load karo
   async function loadData(filters = {}) {
     const nextDateFrom = filters.dateFrom ?? dateFrom;
     const nextDateTo = filters.dateTo ?? dateTo;
@@ -81,6 +82,7 @@ export default function SessionsPage() {
     loadData();
   }
 
+  // naya parking session start karne ka logic
   async function handleCreate(e) {
     e.preventDefault();
     setCreateMsg(null);
@@ -98,6 +100,7 @@ export default function SessionsPage() {
       return;
     }
 
+    // agar already active session hai to dobara start mat hone do
     if (selectedActiveSession) {
       setCreateMsg({
         type: "error",
@@ -131,6 +134,7 @@ export default function SessionsPage() {
     }
   }
 
+  // session band karne ka function
   async function handleClose(sessionId) {
     setCloseMsg(null);
     try {
@@ -156,6 +160,7 @@ export default function SessionsPage() {
     );
   }, [newPlate, userVehicles]);
 
+  // check karo ki selected plate ka koi active session pehle se hai ya nahi
   const selectedActiveSession = useMemo(() => {
     return (
       sessions.find(

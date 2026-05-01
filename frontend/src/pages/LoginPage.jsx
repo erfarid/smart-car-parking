@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ApiClient from "../services/ApiClient";
 
+// role ke hisab se konsa page kholna hai decide karta hai
 function destinationForRole(role) {
   if (role === "admin") return "/";
   if (role === "worker") return "/worker";
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // login form submit hone par backend ko request bhejo
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
@@ -45,7 +47,14 @@ export default function LoginPage() {
     >
       <div className="login-card">
         <div className="login-logo">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <rect x="3" y="3" width="18" height="18" rx="3" />
             <path d="M9 3v18" />
             <path d="M3 9h6" />
@@ -59,8 +68,9 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email</label>
             <input
+              id="email"
               type="email"
               className="input"
               placeholder="Enter your email"
@@ -70,9 +80,11 @@ export default function LoginPage() {
               autoFocus
             />
           </div>
+
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
               type="password"
               className="input"
               placeholder="Enter your password"
@@ -81,7 +93,13 @@ export default function LoginPage() {
               required
             />
           </div>
-          <button type="submit" className="btn btn--primary btn--lg" style={{ width: "100%" }} disabled={loading}>
+
+          <button
+            type="submit"
+            className="btn btn--primary btn--lg"
+            style={{ width: "100%" }}
+            disabled={loading}
+          >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>

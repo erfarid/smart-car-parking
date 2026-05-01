@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ApiClient from "../services/ApiClient";
 
+// localStorage se logged-in user nikalo
 function getStoredUser() {
   try {
     return JSON.parse(localStorage.getItem("user") || "null");
@@ -20,7 +21,9 @@ function getPaymentsKey(email) {
 
 function readStoredPlates(email) {
   try {
-    const data = JSON.parse(localStorage.getItem(getPlateStorageKey(email)) || "[]");
+    const data = JSON.parse(
+      localStorage.getItem(getPlateStorageKey(email)) || "[]",
+    );
     return Array.isArray(data) ? data : [];
   } catch {
     return [];
@@ -29,15 +32,20 @@ function readStoredPlates(email) {
 
 function readPayments(email) {
   try {
-    const data = JSON.parse(localStorage.getItem(getPaymentsKey(email)) || "[]");
+    const data = JSON.parse(
+      localStorage.getItem(getPaymentsKey(email)) || "[]",
+    );
     return Array.isArray(data) ? data : [];
   } catch {
     return [];
   }
 }
 
+// agar session paid hai to uska status update karke return karo
 function mergePaymentState(session, payments) {
-  const paidItem = payments.find((item) => item.session_id === session.session_id);
+  const paidItem = payments.find(
+    (item) => item.session_id === session.session_id,
+  );
   if (!paidItem) return session;
   return {
     ...session,
@@ -58,6 +66,7 @@ export default function UserProfilePage() {
   useEffect(() => {
     let mounted = true;
 
+    // user ke saare sessions aur payments fetch karo
     async function loadProfileData() {
       setLoading(true);
       try {
@@ -67,7 +76,9 @@ export default function UserProfilePage() {
         const filtered = allSessions
           .filter((session) => plates.includes(session.plate_number))
           .map((session) => mergePaymentState(session, userPayments))
-          .sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp));
+          .sort(
+            (a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp),
+          );
 
         if (mounted) {
           setSessions(filtered);
@@ -89,10 +100,18 @@ export default function UserProfilePage() {
     };
   }, [user?.email]);
 
-  const activeSessions = sessions.filter((session) => session.status === "active");
+  // sessions ko status ke hisab se categorize karo
+  const activeSessions = sessions.filter(
+    (session) => session.status === "active",
+  );
   const paidSessions = sessions.filter((session) => session.status === "paid");
-  const dueSessions = sessions.filter((session) => ["unpaid", "overdue", "completed"].includes(session.status));
-  const totalDue = dueSessions.reduce((sum, item) => sum + (item.final_fee || 0), 0);
+  const dueSessions = sessions.filter((session) =>
+    ["unpaid", "overdue", "completed"].includes(session.status),
+  );
+  const totalDue = dueSessions.reduce(
+    (sum, item) => sum + (item.final_fee || 0),
+    0,
+  );
 
   return (
     <div className="page page--user-profile">
@@ -101,22 +120,33 @@ export default function UserProfilePage() {
           <p className="user-hero__eyebrow">User Profile</p>
           <h1>{user?.name || "User Profile"}</h1>
           <p className="text-muted user-hero__text">
-            Check your email, pending amount, active sessions, and the transaction history of payments you already made.
+            Check your email, pending amount, active sessions, and the
+            transaction history of payments you already made.
           </p>
         </div>
         <div className="profile-top-actions">
-          <button type="button" className="btn btn--outline" onClick={() => navigate("/user")}>Back to Dashboard</button>
+          <button
+            type="button"
+            className="btn btn--outline"
+            onClick={() => navigate("/user")}
+          >
+            Back to Dashboard
+          </button>
         </div>
       </div>
 
       <div className="card-grid user-stats-grid">
         <div className="stat-card stat-card--info">
           <div className="stat-card__label">Email</div>
-          <div className="stat-card__value stat-card__value--small">{user?.email || "—"}</div>
+          <div className="stat-card__value stat-card__value--small">
+            {user?.email || "—"}
+          </div>
         </div>
         <div className="stat-card stat-card--warning">
           <div className="stat-card__label">Amount to Pay</div>
-          <div className="stat-card__value">{totalDue.toLocaleString()} HUF</div>
+          <div className="stat-card__value">
+            {totalDue.toLocaleString()} HUF
+          </div>
         </div>
         <div className="stat-card stat-card--active">
           <div className="stat-card__label">Paid Transactions</div>
@@ -136,7 +166,9 @@ export default function UserProfilePage() {
         {loading ? (
           <p className="text-muted">Loading profile data...</p>
         ) : activeSessions.length === 0 ? (
-          <p className="text-muted">No active sessions found for this user yet.</p>
+          <p className="text-muted">
+            No active sessions found for this user yet.
+          </p>
         ) : (
           <div className="table-wrap user-history-table">
             <table>
@@ -152,17 +184,24 @@ export default function UserProfilePage() {
               <tbody>
                 {activeSessions.map((session) => (
                   <tr key={session.session_id}>
-                    <td className="mono">{session.session_id.slice(0, 8)}...</td>
+                    <td className="mono">
+                      {session.session_id.slice(0, 8)}...
+                    </td>
                     <td>{session.plate_number}</td>
                     <td>{session.zone_id}</td>
-                    <td>{new Date(session.entry_timestamp).toLocaleString()}</td>
+                    <td>
+                      {new Date(session.entry_timestamp).toLocaleString()}
+                    </td>
                     <td>
                       <button
                         className="btn btn--primary btn--sm"
                         type="button"
                         onClick={() =>
                           navigate("/user/payment", {
-                            state: { sessionId: session.session_id, plateNumber: session.plate_number },
+                            state: {
+                              sessionId: session.session_id,
+                              plateNumber: session.plate_number,
+                            },
                           })
                         }
                       >
@@ -198,10 +237,20 @@ export default function UserProfilePage() {
               <tbody>
                 {dueSessions.map((session) => (
                   <tr key={session.session_id}>
-                    <td className="mono">{session.session_id.slice(0, 8)}...</td>
+                    <td className="mono">
+                      {session.session_id.slice(0, 8)}...
+                    </td>
                     <td>{session.plate_number}</td>
-                    <td>{session.final_fee != null ? `${session.final_fee.toLocaleString()} HUF` : "—"}</td>
-                    <td><span className={`badge badge--${session.status}`}>{session.status}</span></td>
+                    <td>
+                      {session.final_fee != null
+                        ? `${session.final_fee.toLocaleString()} HUF`
+                        : "—"}
+                    </td>
+                    <td>
+                      <span className={`badge badge--${session.status}`}>
+                        {session.status}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -236,12 +285,28 @@ export default function UserProfilePage() {
                   .sort((a, b) => new Date(b.paid_at) - new Date(a.paid_at))
                   .map((payment) => (
                     <tr key={payment.session_id}>
-                      <td className="mono">{payment.session_id.slice(0, 8)}...</td>
+                      <td className="mono">
+                        {payment.session_id.slice(0, 8)}...
+                      </td>
                       <td>{payment.plate_number}</td>
-                      <td>{payment.amount != null ? `${payment.amount.toLocaleString()} HUF` : "—"}</td>
-                      <td>{payment.card_last4 ? `**** ${payment.card_last4}` : "—"}</td>
-                      <td>{payment.paid_at ? new Date(payment.paid_at).toLocaleString() : "—"}</td>
-                      <td><span className="badge badge--paid">paid</span></td>
+                      <td>
+                        {payment.amount != null
+                          ? `${payment.amount.toLocaleString()} HUF`
+                          : "—"}
+                      </td>
+                      <td>
+                        {payment.card_last4
+                          ? `**** ${payment.card_last4}`
+                          : "—"}
+                      </td>
+                      <td>
+                        {payment.paid_at
+                          ? new Date(payment.paid_at).toLocaleString()
+                          : "—"}
+                      </td>
+                      <td>
+                        <span className="badge badge--paid">paid</span>
+                      </td>
                     </tr>
                   ))}
               </tbody>

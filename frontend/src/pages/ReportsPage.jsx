@@ -12,6 +12,7 @@ import {
 import { Bar, Doughnut } from "react-chartjs-2";
 import ApiClient from "../services/ApiClient";
 
+// Chart.js ke required components register karo
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -19,9 +20,10 @@ ChartJS.register(
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
+// chart ke colors palette
 const COLORS = [
   "#6366f1",
   "#8b5cf6",
@@ -43,6 +45,7 @@ export default function ReportsPage() {
     loadReports();
   }, []);
 
+  // saari report data ek saath fetch karo
   async function loadReports() {
     setLoading(true);
     setError(null);
@@ -65,15 +68,13 @@ export default function ReportsPage() {
   if (loading) return <div className="page-loading">Loading reports...</div>;
   if (error) return <div className="page-error">Error: {error}</div>;
 
-  // Map zone_id to zone_name
+  // zone_id se zone_name nikalne ke liye map
   const zoneMap = {};
   zones.forEach((z) => (zoneMap[z.zone_id] = z.zone_name));
 
-  // Bar chart: Revenue by Zone
+  // Bar chart: zone wise revenue
   const barData = {
-    labels: revenueByZone.map(
-      (r) => zoneMap[r.zone_id] || r.zone_id
-    ),
+    labels: revenueByZone.map((r) => zoneMap[r.zone_id] || r.zone_id),
     datasets: [
       {
         label: "Revenue (HUF)",
@@ -116,16 +117,12 @@ export default function ReportsPage() {
     },
   };
 
-  // Doughnut chart: Session status breakdown
+  // Doughnut chart: paid/unpaid/overdue ratio
   const doughnutData = {
     labels: ["Paid", "Unpaid", "Overdue"],
     datasets: [
       {
-        data: [
-          summary.paid_count,
-          summary.unpaid_count,
-          summary.overdue_count,
-        ],
+        data: [summary.paid_count, summary.unpaid_count, summary.overdue_count],
         backgroundColor: ["#22c55e", "#f59e0b", "#ef4444"],
         borderWidth: 0,
         hoverOffset: 8,
@@ -209,8 +206,9 @@ export default function ReportsPage() {
                 const zone = zones.find((z) => z.zone_id === r.zone_id);
                 const totalRev = revenueByZone.reduce(
                   (sum, x) => sum + x.revenue,
-                  0
+                  0,
                 );
+                // har zone ka share % nikalo
                 const share = totalRev > 0 ? (r.revenue / totalRev) * 100 : 0;
                 return (
                   <tr key={r.zone_id}>

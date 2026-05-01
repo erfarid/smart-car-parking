@@ -7,4 +7,5 @@ opencv-python-headless
 easyocr
 pytest
 pytest-cov
+httpx
 ultralytics

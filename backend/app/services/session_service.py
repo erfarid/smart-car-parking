@@ -12,6 +12,7 @@ class SessionService:
 
     @staticmethod
     def _get_vehicle_for_session(plate_number: str, user_id: str | None, user_role: str):
+        # Vehicle validate karega + ownership check karega (normal user ke liye)
         vehicle = VehicleRepository.get_by_plate_any(plate_number)
         if not vehicle:
             raise ValueError("Vehicle not found (add it first)")
@@ -23,6 +24,7 @@ class SessionService:
 
     @staticmethod
     def _calculate_quote(session, exit_timestamp: str | None = None):
+        # Duration + fee calculation logic (core pricing yaha hota hai)
         entry_dt = datetime.fromisoformat(session["entry_timestamp"])
         exit_ts = exit_timestamp or datetime.now().isoformat()
         exit_dt = datetime.fromisoformat(exit_ts)
@@ -62,6 +64,7 @@ class SessionService:
         if user_role not in {"admin", "worker"} and session["user_id"] != user_id:
             raise ValueError("You can only access your own sessions")
 
+        # Active session ka live fee estimate return karega
         quote = SessionService._calculate_quote(session)
         return {
             "session_id": session["session_id"],
@@ -79,6 +82,7 @@ class SessionService:
 
     @staticmethod
     def create_session(data):
+        # Naya parking session create karega (validation + uniqueness check)
         session_id = str(uuid.uuid4())
         entry_ts = data.entry_timestamp or datetime.now().isoformat()
         plate_number = data.plate_number.strip().upper()
@@ -117,6 +121,7 @@ class SessionService:
 
     @staticmethod
     def finalize_session(session_id: str, exit_timestamp: str | None = None, final_status: str = "unpaid"):
+        # Session close karega + final fee calculate karke DB me store karega
         session = SessionRepository.get_active(session_id)
         if not session:
             raise ValueError("Active session not found")
@@ -153,6 +158,7 @@ class SessionService:
 
     @staticmethod
     def close_session(session_id: str, data):
+        # Sirf admin manually session close kar sakta hai
         user_role = (getattr(data, "user_role", "user") or "user").strip().lower()
         if user_role != "admin":
             raise ValueError("Only admin can end a session directly")

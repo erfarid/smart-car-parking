@@ -7,6 +7,7 @@ class ReportingService:
 
     @staticmethod
     def revenue_by_zone():
+        # Har zone ka total revenue calculate karega
         conn = get_connection()
         cur = conn.cursor()
         cur.execute(
@@ -24,6 +25,7 @@ class ReportingService:
 
     @staticmethod
     def revenue_summary():
+        # Overall summary: total revenue + paid/unpaid/overdue count
         conn = get_connection()
         cur = conn.cursor()
         cur.execute(
@@ -54,12 +56,14 @@ class ReportingService:
         role: str = "user",
         plate_number: Optional[str] = None,
     ):
+        # Dynamic query ban raha hai based on filters (date, user, plate)
         conn = get_connection()
         cur = conn.cursor()
 
         query = "SELECT * FROM parking_sessions WHERE 1=1"
         params = []
 
+        # Agar admin/worker nahi hai to sirf apna data dekh sakta hai
         if role not in {"admin", "worker"}:
             if not user_id:
                 query += " AND 1=0"
@@ -67,10 +71,12 @@ class ReportingService:
                 query += " AND user_id = ?"
                 params.append(user_id)
 
+        # Plate number filter
         if plate_number:
             query += " AND plate_number = ?"
             params.append(plate_number.strip().upper())
 
+        # Date range filters
         if date_from:
             query += " AND entry_timestamp >= ?"
             params.append(date_from)
