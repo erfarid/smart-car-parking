@@ -1,4 +1,4 @@
-# Smart Parking Sys
+# Smart Parking System
 
 A full-stack smart parking management system for Budapest with AI-based license plate detection (YOLOv8 + EasyOCR), district-based dynamic fee calculation, role-based access (User / Worker / Admin), digital payments, worker patrol with fine issuance, live congestion map, and admin reporting dashboards.
 
